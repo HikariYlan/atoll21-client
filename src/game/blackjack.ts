@@ -1,4 +1,4 @@
-const ranks: string[] = ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "Queen", "King"];
+const ranks: {[key: string]: number} = {"Ace": 11, "Two": 2, "Three": 3, "Four": 4, "Five": 5, "Six": 6, "Seven": 7, "Eight": 8, "Nine": 9, "Ten": 10, "Jack": 10, "Queen": 10, "King": 10}
 const suits: string[] = ["Heart", "Spade", "Diamond", "Club"];
 
 export class Card {
@@ -59,9 +59,9 @@ export function createDeck(): Card[] {
     let cards: Card[] = [];
 
     suits.forEach(suit => {
-        ranks.forEach(rank => {
+        for (let rank in ranks) {
             cards.push(new Card(rank, suit));
-        })
+        }
     });
 
     return cards;
@@ -87,14 +87,13 @@ export function drawCard(deck: Card[]): Card {
 }
 
 export function computeHand(hand: Card[]): [number, boolean] {
-    const ranksValues: any = {"Ace": 11, "Two": 2, "Three": 3, "Four": 4, "Five": 5, "Six": 6, "Seven": 7, "Eight": 8, "Nine": 9, "Ten": 10, "Jack": 10, "Queen": 10, "King": 10}
     let total: number = 0;
     let softAces: number = 0;
     hand.forEach(card => {
         if (card.rank == "Ace") {
             softAces += 1;
         }
-        total += ranksValues[card.rank];
+        total += ranks[card.rank];
     })
     while (total > 21 && softAces > 0) {
         total -= 10;
