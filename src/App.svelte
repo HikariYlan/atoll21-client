@@ -69,7 +69,7 @@
                 <Card suit={card.suit} rank={card.rank}/>
             {/each}
         </div>
-        <p>{view.playerTotal[0]}</p>
+        <p>{#if view.playerTotal[1]}Soft{/if} {view.playerTotal[0]}</p>
     </div>
     <div>
         <button onclick={hit} disabled={view.roundState == RoundState.FINISHED}>Hit</button>
