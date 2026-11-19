@@ -4,20 +4,21 @@ import { BlackJackRound, RoundState } from "./blackjack";
 export enum GameSessionPhase {
     BETTING = "betting",
     PLAYING = "playing",
-    FINISHED = "finished"
+    FINISHED = "finished",
+    BROKE = "broke"
 }
 
 export class GameSession {
     startingBankroll: number;
     currentBankroll: number;
-    currentBet: number;
+    currentBet: number = 0;
     betLimitLevel: number;
     gameSessionPhase: GameSessionPhase;
     round: BlackJackRound | null = null;
+    lastNet: number = 0;
 
     constructor (startingBankroll: number, betLimitLevel: number) {
         this.startingBankroll = this.currentBankroll = startingBankroll;
-        this.currentBet = 0;
         this.betLimitLevel = betLimitLevel;
         this.gameSessionPhase = GameSessionPhase.BETTING;
     }
@@ -40,8 +41,11 @@ export class GameSession {
     private settle(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (this.round === null || this.round.roundState != RoundState.FINISHED) return;
-        this.currentBankroll += determinePayout(this.round.roundOutcome, this.currentBet);
+        let payout: number = determinePayout(this.round.roundOutcome, this.currentBet);
+        this.currentBankroll += payout;
         this.gameSessionPhase = GameSessionPhase.FINISHED;
+        
+        this.lastNet = payout - this.currentBet;
     }
 
     public hit(): void {
@@ -59,7 +63,16 @@ export class GameSession {
     public nextRound(): void {
         if (this.gameSessionPhase != GameSessionPhase.FINISHED) return;
         this.round = null;
-        this.currentBet = 0;
+        this.currentBet = this.lastNet = 0;
         this.gameSessionPhase = GameSessionPhase.BETTING;
+
+        if (this.currentBankroll < determineBetLimit(this.startingBankroll, this.betLimitLevel)[0]) {
+            this.gameSessionPhase = GameSessionPhase.BROKE;
+        }
+    }
+
+    public betRange(): number[] {
+        let [min, max] = determineBetLimit(this.startingBankroll, this.betLimitLevel);
+        return [min, Math.min(max, this.currentBankroll)];
     }
 }
