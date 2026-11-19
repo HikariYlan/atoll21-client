@@ -1,21 +1,21 @@
 import { Outcome } from "./blackjack"
 
 export function determineBetLimit(startingBankroll: number, betLimitLevel: number): number[] {
-    let min: number = startingBankroll * 0.1;
+    let min: number = Math.max(1, Math.floor(startingBankroll * 0.1));
     let max: number = 0;
     switch (betLimitLevel) {
         case 0:
-            max = Math.floor(startingBankroll * 0.5) >= 1 ? Math.floor(startingBankroll * 0.5) : 1;
+            max = Math.max(1, Math.floor(startingBankroll * 0.5));
             break;
         case 1:
             max = startingBankroll;
             break;
         case 2:
 
-            max = Math.floor(startingBankroll * 1.25) >= 1 ? Math.floor(startingBankroll * 1.25) : 1;
+            max = Math.max(1, Math.floor(startingBankroll * 1.25));
             break;
         case 3:
-            max = Math.floor(startingBankroll * 1.50) >= 1 ? Math.floor(startingBankroll * 1.50) : 1;
+            max = Math.max(1, Math.floor(startingBankroll * 1.5));
             break;
     }
 
