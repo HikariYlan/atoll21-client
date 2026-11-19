@@ -177,8 +177,8 @@ export class BlackJackRound {
         this.playerHand = new Hand;
         this.dealerHand = new Hand;
         this.playerHand.drawCard(this.deck);
-        this.playerHand.drawCard(this.deck);
         this.dealerHand.drawCard(this.deck);
+        this.playerHand.drawCard(this.deck);
         this.roundState = RoundState.PLAYER_ROUND;
         this.playerHand.decideHandState();
         if (this.playerHand.state == HandState.BLACKJACK) {
