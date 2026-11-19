@@ -24,15 +24,19 @@ export function determineBetLimit(startingBankroll: number, betLimitLevel: numbe
 
 export function determinePayout(outcome: Outcome, bet: number): number {
     switch (outcome) {
-        case Outcome.PLAYER_BUST, Outcome.DEALER_BLACKJACK, Outcome.DEALER_WIN:
+        case Outcome.PLAYER_BUST:
+        case Outcome.DEALER_BLACKJACK:
+        case Outcome.DEALER_WIN:
             return 0;
-        case Outcome.PUSH, Outcome.PUSH_BLACKJACK:
+        case Outcome.PUSH:
+        case Outcome.PUSH_BLACKJACK:
             return bet;
-        case Outcome.PLAYER_WIN, Outcome.DEALER_BUST:
+        case Outcome.PLAYER_WIN:
+        case Outcome.DEALER_BUST:
             return bet * 2;
         case Outcome.PLAYER_BLACKJACK:
             return Math.floor(bet + (bet * 1.5));
         default:
-            return bet;
+            throw Error("determinePayout(): outcome is invalid");
     }
 }
