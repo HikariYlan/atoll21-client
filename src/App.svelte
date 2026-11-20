@@ -44,18 +44,25 @@
         refresh();
     }
 
-    function newRound() {
-        gameSession.nextRound();
-        betInput = gameState.bet;
-        refresh();
+    let betInput: number | null = $state(gameSession.betRange()[0]);
+    let lastBet: number = gameSession.betRange()[0];
+    let errorMessage = $state("");
+
+    function restoreBet() {
+        const [min, max] = gameSession.betRange();
+        betInput = Math.min(Math.max(lastBet, min), max);
     }
 
-    let betInput: number | null = $state(gameSession.betRange()[0]);
-    let errorMessage = $state("");
+    function newRound() {
+        gameSession.nextRound();
+        restoreBet();
+        refresh();
+    }
 
     function deal() {
         try {
             gameSession.placingBet(betInput!);
+            lastBet = betInput!;
             errorMessage = "";
         } catch (error) {
             errorMessage = (error as Error).message;
