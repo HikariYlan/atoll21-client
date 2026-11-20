@@ -1,4 +1,4 @@
-import { Outcome } from "./blackjack"
+import { HandOutcome } from "./blackjack"
 
 export function determineBetLimit(startingBankroll: number, betLimitLevel: number): number[] {
     let min: number = Math.max(1, Math.floor(startingBankroll * 0.1));
@@ -22,19 +22,19 @@ export function determineBetLimit(startingBankroll: number, betLimitLevel: numbe
     return [min, max];
 }
 
-export function determinePayout(outcome: Outcome, bet: number): number {
+export function determinePayout(outcome: HandOutcome, bet: number): number {
     switch (outcome) {
-        case Outcome.PLAYER_BUST:
-        case Outcome.DEALER_BLACKJACK:
-        case Outcome.DEALER_WIN:
+        case HandOutcome.PLAYER_BUST:
+        case HandOutcome.DEALER_BLACKJACK:
+        case HandOutcome.DEALER_WIN:
             return 0;
-        case Outcome.PUSH:
-        case Outcome.PUSH_BLACKJACK:
+        case HandOutcome.PUSH:
+        case HandOutcome.PUSH_BLACKJACK:
             return bet;
-        case Outcome.PLAYER_WIN:
-        case Outcome.DEALER_BUST:
+        case HandOutcome.PLAYER_WIN:
+        case HandOutcome.DEALER_BUST:
             return bet * 2;
-        case Outcome.PLAYER_BLACKJACK:
+        case HandOutcome.PLAYER_BLACKJACK:
             return Math.floor(bet + (bet * 1.5));
         default:
             throw Error("determinePayout(): outcome is invalid");

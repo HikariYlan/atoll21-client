@@ -33,7 +33,7 @@ export class GameSession {
 
         this.currentBankroll -= amount;
         this.currentBet = amount;
-        this.round = new BlackJackRound;
+        this.round = new BlackJackRound(amount);
         this.gameSessionPhase = GameSessionPhase.PLAYING;
         this.settle();
     }
@@ -41,8 +41,14 @@ export class GameSession {
     private settle(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (this.round === null || this.round.roundState != RoundState.FINISHED) return;
-        let payout: number = determinePayout(this.round.roundOutcome, this.currentBet);
+        let payout: number = 0;
+        let stake: number = 0;
+        this.round.playerHands.forEach(hand => {
+            payout += determinePayout(hand.outcome, hand.bet);
+            stake += hand.bet;
+        });
         this.currentBankroll += payout;
+        this.currentBet = stake;
         this.gameSessionPhase = GameSessionPhase.FINISHED;
         
         this.lastNet = payout - this.currentBet;

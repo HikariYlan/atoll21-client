@@ -17,7 +17,7 @@ export enum HandState {
     NORMAL = "normal"
 }
 
-export enum Outcome {
+export enum HandOutcome {
     PLAYER_BUST = "player_bust",
     PLAYER_BLACKJACK = "player_blackjack",
     DEALER_BUST = "dealer_bust",
@@ -32,10 +32,16 @@ export enum Outcome {
 export class Hand {
     cards: Card[];
     state: HandState;
+    bet: number;
+    outcome: HandOutcome;
+    isDone: boolean;
 
-    constructor() {
+    constructor(bet: number) {
         this.cards = [];
         this.state = HandState.NORMAL;
+        this.bet = bet;
+        this.outcome = HandOutcome.NOT_DECIDED;
+        this.isDone = false;
     }
      
     public decideHandState() {
@@ -115,7 +121,7 @@ export function dealerTurn(deck:Card[], hand: Hand, hitLimit: number, hitOnSoft:
     return hand.state;
 }
 
-export function checkWinner(playerHand: Hand, dealerHand: Hand): Outcome {
+export function checkWinner(playerHand: Hand, dealerHand: Hand): HandOutcome {
     playerHand.decideHandState();
     dealerHand.decideHandState();
 
@@ -123,39 +129,39 @@ export function checkWinner(playerHand: Hand, dealerHand: Hand): Outcome {
     const dealerHandState = dealerHand.state;
 
     if (playerHandState == HandState.BUSTED) {
-        return Outcome.PLAYER_BUST;
+        return HandOutcome.PLAYER_BUST;
     }
 
     if (dealerHandState == HandState.BUSTED) {
         if (playerHandState == HandState.BLACKJACK) {
-            return Outcome.PLAYER_BLACKJACK;
+            return HandOutcome.PLAYER_BLACKJACK;
         }
-        return Outcome.DEALER_BUST;
+        return HandOutcome.DEALER_BUST;
     }
 
     if (dealerHandState == HandState.BLACKJACK && playerHandState == HandState.BLACKJACK) {
-        return Outcome.PUSH_BLACKJACK;
+        return HandOutcome.PUSH_BLACKJACK;
     }
 
     if (playerHandState == HandState.BLACKJACK) {
-        return Outcome.PLAYER_BLACKJACK;
+        return HandOutcome.PLAYER_BLACKJACK;
     }
 
     if (dealerHandState == HandState.BLACKJACK) {
-        return Outcome.DEALER_BLACKJACK;
+        return HandOutcome.DEALER_BLACKJACK;
     }
 
     const [playerTotal] = computeHand(playerHand.cards);
     const [dealerTotal] = computeHand(dealerHand.cards);
 
     if (dealerTotal == playerTotal) {
-        return Outcome.PUSH;
+        return HandOutcome.PUSH;
     }
 
     if (playerTotal > dealerTotal) {
-        return Outcome.PLAYER_WIN;
+        return HandOutcome.PLAYER_WIN;
     }
-    return Outcome.DEALER_WIN;
+    return HandOutcome.DEALER_WIN;
 }
 
 export enum RoundState {
@@ -165,23 +171,24 @@ export enum RoundState {
 
 export class BlackJackRound {
     deck: Card[];
-    playerHand: Hand;
+    playerHands: Hand[];
     dealerHand: Hand;
     roundState: RoundState;
-    roundOutcome: Outcome = Outcome.NOT_DECIDED;
     dealerHitLimit: number = 0;
     dealerHitOnSoft: boolean = false;
+    activeHandIndex: number;
 
-    constructor() {
+    constructor(bet: number) {
         this.deck = shuffleDeck(createDeck());
-        this.playerHand = new Hand;
-        this.dealerHand = new Hand;
-        this.playerHand.drawCard(this.deck);
+        this.playerHands = [new Hand(bet)];
+        this.dealerHand = new Hand(0);
+        this.activeHandIndex = 0;
+        this.playerHands[0].drawCard(this.deck);
         this.dealerHand.drawCard(this.deck);
-        this.playerHand.drawCard(this.deck);
+        this.playerHands[0].drawCard(this.deck);
         this.roundState = RoundState.PLAYER_ROUND;
-        this.playerHand.decideHandState();
-        if (this.playerHand.state == HandState.BLACKJACK) {
+        this.playerHands[0].decideHandState();
+        if (this.playerHands[0].state == HandState.BLACKJACK) {
             this.stand();
         }
     }
@@ -190,11 +197,11 @@ export class BlackJackRound {
         if (this.roundState != RoundState.PLAYER_ROUND) {
             throw Error("BlackJackRound.hit(): it is not player's turn");
         }
-        this.playerHand.drawCard(this.deck);
-        this.playerHand.decideHandState();
-        let [total, _] = computeHand(this.playerHand.cards);
-        if (this.playerHand.state == HandState.BUSTED) {
-            this.finish();
+        this.playerHands[this.activeHandIndex].drawCard(this.deck);
+        this.playerHands[this.activeHandIndex].decideHandState();
+        let [total, _] = computeHand(this.playerHands[this.activeHandIndex].cards);
+        if (this.playerHands[this.activeHandIndex].state == HandState.BUSTED) {
+            this.endActiveHand();
         } else if (total == 21) {
             this.stand();
         }
@@ -204,12 +211,27 @@ export class BlackJackRound {
         if (this.roundState != RoundState.PLAYER_ROUND) {
             throw Error("BlackJackRound.stand(): it is not player's turn");
         }
-        dealerTurn(this.deck, this.dealerHand, this.dealerHitLimit, this.dealerHitOnSoft);
-        this.finish();
+        this.endActiveHand();
+    }
+
+    private endActiveHand() {
+        this.playerHands[this.activeHandIndex].isDone = true;
+        if (this.activeHandIndex + 1 >= this.playerHands.length) {
+            if (this.playerHands.every((hand) => hand.state == HandState.BUSTED)) {
+                this.finish();
+            } else {
+                dealerTurn(this.deck, this.dealerHand, this.dealerHitLimit, this.dealerHitOnSoft);
+                this.finish();
+            }
+        } else {
+            this.activeHandIndex += 1;
+        }
     }
 
     private finish() {
-        this.roundOutcome = checkWinner(this.playerHand, this.dealerHand);
+        this.playerHands.forEach(hand => {
+            hand.outcome = checkWinner(hand, this.dealerHand);
+        });
         this.roundState = RoundState.FINISHED;
     }
 }
