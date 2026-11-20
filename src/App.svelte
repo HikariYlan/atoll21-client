@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { computeHand, Outcome, RoundState } from "./game/blackjack";
+    import { computeHand, HandOutcome, RoundState } from "./game/blackjack";
     import { GameSession, GameSessionPhase } from "./game/casino";
     import Card from "./lib/Card.svelte";
 
@@ -7,11 +7,19 @@
     function snapshot() {
         const round = gameSession.round;
         return {
-            playerHand: round ? round.playerHand : null,
+            playerHands: round ? round.playerHands.map((hand, index) => {
+                const [total, isSoft] = computeHand(hand.cards);
+                return {
+                    cards: [...hand.cards],
+                    total,
+                    isSoft,
+                    bet: hand.bet,
+                    outcome: hand.outcome,
+                    isActive: index == round.activeHandIndex && round.roundState == RoundState.PLAYER_ROUND
+                };
+            }) : [],
             dealerHand: round ? round.dealerHand : null,
-            playerTotal: round ? computeHand(round.playerHand.cards) : null,
             dealerTotal: round ? computeHand(round.dealerHand.cards) : null,
-            roundOutcome: round ? round.roundOutcome : Outcome.NOT_DECIDED,
             bankroll: gameSession.currentBankroll,
             bet: gameSession.currentBet,
             phase: gameSession.gameSessionPhase,
@@ -38,7 +46,7 @@
 
     function newRound() {
         gameSession.nextRound();
-        betInput = gameSession.betRange()[0];
+        betInput = gameState.bet;
         refresh();
     }
 
@@ -65,16 +73,16 @@
         refresh();
     }
 
-    const outcomeTexts: Record<Outcome, string> = {
-        [Outcome.PLAYER_BUST]: "Player busted!",
-        [Outcome.PLAYER_BLACKJACK]: "Player hit a blackjack!",
-        [Outcome.DEALER_BUST]: "Dealer Busted!",
-        [Outcome.DEALER_BLACKJACK]: "Dealer hit a blackjack!",
-        [Outcome.PUSH_BLACKJACK]: "Both hit a blackjack!",
-        [Outcome.PUSH]: "It's a push!",
-        [Outcome.PLAYER_WIN]: "Player wins!",
-        [Outcome.DEALER_WIN]: "Dealer wins!",
-        [Outcome.NOT_DECIDED]: ""
+    const outcomeTexts: Record<HandOutcome, string> = {
+        [HandOutcome.PLAYER_BUST]: "Player busted!",
+        [HandOutcome.PLAYER_BLACKJACK]: "Player hit a blackjack!",
+        [HandOutcome.DEALER_BUST]: "Dealer Busted!",
+        [HandOutcome.DEALER_BLACKJACK]: "Dealer hit a blackjack!",
+        [HandOutcome.PUSH_BLACKJACK]: "Both hit a blackjack!",
+        [HandOutcome.PUSH]: "It's a push!",
+        [HandOutcome.PLAYER_WIN]: "Player wins!",
+        [HandOutcome.DEALER_WIN]: "Dealer wins!",
+        [HandOutcome.NOT_DECIDED]: ""
     };
 </script>
 
@@ -94,7 +102,7 @@
             }>Deal!</button>
         </div>
     {/if}
-    {#if gameState.playerHand && gameState.dealerHand}
+    {#if gameState.playerHands && gameState.dealerHand}
         <p>Current bankroll: {gameState.bankroll}</p>
         <p>Current bet: {gameState.bet}</p>
         <div>
@@ -107,12 +115,17 @@
         </div>
         <br><br>
         <div>
+        {#each gameState.playerHands as hand}
             <div class="hand">
-                {#each gameState.playerHand.cards as card}
+                {#each hand.cards as card}
                     <Card suit={card.suit} rank={card.rank}/>
                 {/each}
             </div>
-            <p>{#if gameState.playerTotal![1]}Soft{/if} {gameState.playerTotal![0]}</p>
+            <p>{#if hand.isSoft}Soft{/if} {hand.total} (bet {hand.bet})</p>
+            {#if hand.outcome != HandOutcome.NOT_DECIDED}
+                <p>{outcomeTexts[hand.outcome]}</p>
+            {/if}
+        {/each}
         </div>
         <div>
             <button onclick={hit} disabled={gameState.phase != GameSessionPhase.PLAYING}>Hit</button>
@@ -121,7 +134,14 @@
         </div>
         {#if gameState.phase == GameSessionPhase.FINISHED}
             <div>
-                <h1>{outcomeTexts[gameState.roundOutcome]} {#if gameState.lastNet > 0}+{/if}{gameState.lastNet}</h1>
+                <h1>
+                    {#if gameState.lastNet > 0}
+                        Well done! +{gameState.lastNet}
+                    {:else if gameState.lastNet == 0}
+                        No gain, no loss.
+                    {:else}
+                        Better luck next time... {gameState.lastNet}
+                    {/if}</h1>
             </div>
         {/if}
     {/if}
