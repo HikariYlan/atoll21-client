@@ -217,7 +217,7 @@
             <button onclick={hit} disabled={gameState.phase != GameSessionPhase.PLAYING}>Hit</button>
             <button onclick={stand} disabled={gameState.phase != GameSessionPhase.PLAYING}>Stand</button>
             <button onclick={surrender} disabled={gameState.unlocks.surrender == false || gameState.phase != GameSessionPhase.PLAYING}>Surrender</button>
-            <button onclick={double} disabled={gameState.unlocks.double == false || gameState.phase != GameSessionPhase.PLAYING}>Double</button>
+            <button onclick={double} disabled={gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.unlocks.double == false || gameState.phase != GameSessionPhase.PLAYING}>Double</button>
             <button onclick={newRound} disabled={gameState.phase == GameSessionPhase.PLAYING}>New round</button>
         </div>
         {#if gameState.phase == GameSessionPhase.FINISHED}
