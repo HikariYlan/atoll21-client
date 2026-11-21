@@ -94,6 +94,14 @@ export class GameSession {
         this.settle();
     }
 
+    public double(): void  {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
+        if (!this.unlocks.double) return;
+        if (this.currentBankroll < this.round!.playerHands[this.round!.activeHandIndex].bet) return;
+        this.round!.double();
+        this.settle();
+    }
+
     private settle(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (this.round === null || this.round.roundState != RoundState.FINISHED) return;

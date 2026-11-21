@@ -124,6 +124,18 @@ export class BlackJackRound {
         this.endActiveHand(); 
     }
 
+    public double() {
+        if (this.roundState != RoundState.PLAYER_ROUND) {
+            throw Error("BlackJackRound.double(): it is not player's turn");
+        }
+        if (this.playerHands[this.activeHandIndex].cards.length > 2) {
+            throw Error("BlackjackRound.double(): hand has more than 2 cards");
+        }
+        this.playerHands[this.activeHandIndex].bet *= 2;
+        this.playerHands[this.activeHandIndex].drawCard(this.deck);
+        this.endActiveHand();
+    }
+
     private endActiveHand() {
         this.playerHands[this.activeHandIndex].isDone = true;
         if (this.activeHandIndex + 1 >= this.playerHands.length) {
