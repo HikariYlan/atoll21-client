@@ -3,7 +3,7 @@
     import { GameSession, GameSessionPhase } from "./game/casino";
     import Card from "./lib/Card.svelte";
 
-    let gameSession = new GameSession(100, 0);
+    let gameSession = new GameSession(100);
     function snapshot() {
         const round = gameSession.round;
         return {
@@ -24,7 +24,8 @@
             bet: gameSession.currentBet,
             phase: gameSession.gameSessionPhase,
             lastNet: gameSession.lastNet,
-            betRange: gameSession.betRange()
+            betRange: gameSession.betRange(),
+            unlocks: gameSession.unlocks
         };
     }
 
@@ -46,6 +47,13 @@
 
     let betInput: number | null = $state(gameSession.betRange()[0]);
     let lastBet: number = gameSession.betRange()[0];
+    let double: boolean = $state(false);
+    let surrender: boolean = $state(false);
+    let split: boolean = $state(false);
+    let insurance: boolean = $state(false);
+    let betLimit: number = $state(0);
+    let dealerLevel: number = $state(0);
+
     let errorMessage = $state("");
 
     function restoreBet() {
@@ -78,6 +86,66 @@
         gameSession.gameSessionPhase = GameSessionPhase.BETTING;
         newRound();
         refresh();
+    }
+
+    /**
+     * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
+     */
+    function changeDouble() {
+        gameSession.unlocks.double = double;
+        refresh();
+    }
+
+    /**
+     * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
+     */
+    function changeSplit() {
+        gameSession.unlocks.split = split;
+        refresh();
+    }
+
+    /**
+     * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
+     */
+    function changeInsurance() {
+        gameSession.unlocks.insurance = insurance;
+        refresh();
+    }
+
+    /**
+     * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
+     */
+    function changeSurrender() {
+        gameSession.unlocks.surrender = surrender;
+        refresh();
+    }
+
+    /**
+     * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
+     */
+    function changeBetLimit() {
+        gameSession.unlocks.betLimitLevel = betLimit;
+        refresh();
+    }
+
+    /**
+     * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
+     */
+    function changeDealerLevel() {
+        gameSession.unlocks.dealerLevel = dealerLevel;
+        refresh();
+    }
+
+    /**
+     * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
+     */
+    function debug() {
+        changeBetLimit();
+        changeDealerLevel();
+        changeDouble();
+        changeSplit();
+        changeSurrender();
+        changeInsurance();
     }
 
     const outcomeTexts: Record<HandOutcome, string> = {
@@ -151,6 +219,45 @@
                     {/if}</h1>
             </div>
         {/if}
+        <div>
+            Double:
+            <input type="checkbox" bind:checked={double}>
+
+            Split:
+            <input type="checkbox" bind:checked={split}>
+
+            Surrender:
+            <input type="checkbox" bind:checked={surrender}>
+
+            Insurance:
+            <input type="checkbox" bind:checked={insurance}>
+
+            Bet limit level:
+            <select bind:value={betLimit}>
+                <option value={0}>0</option>
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+            </select>
+
+            Dealer level (4 = 17 hit on soft):
+            <select bind:value={dealerLevel}>
+                <option value={0}>0</option>
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+                <option value={4}>4</option>
+            </select>
+            <button onclick={debug}>Save debug</button>
+        </div>
+        <div>
+            <p>Double: {gameState.unlocks.double}</p>
+            <p>Split: {gameState.unlocks.split}</p>
+            <p>Surrender: {gameState.unlocks.surrender}</p>
+            <p>Insurance: {gameState.unlocks.insurance}</p>
+            <p>Bet limit level: {gameState.unlocks.betLimitLevel}</p>
+            <p>Dealer level: {gameState.unlocks.dealerLevel}</p>
+        </div>
     {/if}
 </div>
 
