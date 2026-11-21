@@ -35,6 +35,8 @@ export function determinePayout(outcome: HandOutcome, bet: number): number {
             return bet * 2;
         case HandOutcome.PLAYER_BLACKJACK:
             return Math.floor(bet + (bet * 1.5));
+        case HandOutcome.SURRENDERED:
+            return Math.floor(bet / 2);
         default:
             throw Error("determinePayout(): outcome is invalid");
     }

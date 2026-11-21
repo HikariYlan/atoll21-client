@@ -41,6 +41,11 @@ export class GameSession {
         this.gameSessionPhase = GameSessionPhase.BETTING;
     }
 
+    public betRange(): number[] {
+        let [min, max] = determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel);
+        return [min, Math.min(max, this.currentBankroll)];
+    }
+
     public placingBet(amount: number): void {
         if (this.gameSessionPhase != GameSessionPhase.BETTING) return;
         let [min, max] = determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel);
@@ -70,6 +75,25 @@ export class GameSession {
         return [dealerHitLimits[dealerLevel], hitOnSoft];
     }
 
+    public hit(): void {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
+        this.round!.hit();
+        this.settle();
+    }
+
+    public stand(): void {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
+        this.round!.stand();
+        this.settle();
+    }
+
+    public surrender(): void {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
+        if (!this.unlocks.surrender) return;
+        this.round!.surrender();
+        this.settle();
+    }
+
     private settle(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (this.round === null || this.round.roundState != RoundState.FINISHED) return;
@@ -86,18 +110,6 @@ export class GameSession {
         this.lastNet = payout - this.currentBet;
     }
 
-    public hit(): void {
-        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
-        this.round!.hit();
-        this.settle();
-    }
-
-    public stand(): void {
-        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
-        this.round!.stand();
-        this.settle();
-    }
-
     public nextRound(): void {
         if (this.gameSessionPhase != GameSessionPhase.FINISHED) return;
         this.round = null;
@@ -107,10 +119,5 @@ export class GameSession {
         if (this.currentBankroll < determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel)[0]) {
             this.gameSessionPhase = GameSessionPhase.BROKE;
         }
-    }
-
-    public betRange(): number[] {
-        let [min, max] = determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel);
-        return [min, Math.min(max, this.currentBankroll)];
     }
 }
