@@ -41,3 +41,7 @@ export function determinePayout(outcome: HandOutcome, bet: number): number {
             throw Error("determinePayout(): outcome is invalid");
     }
 }
+
+export function determineInsurancePayout(insuranceAmount: number, dealerHasBlackjack: boolean): number {
+    return dealerHasBlackjack ? insuranceAmount * 2 : 0;
+}
