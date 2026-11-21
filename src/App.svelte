@@ -45,12 +45,17 @@
         refresh();
     }
 
+    function surrender() {
+        gameSession.surrender();
+        refresh();
+    }
+
     let betInput: number | null = $state(gameSession.betRange()[0]);
     let lastBet: number = gameSession.betRange()[0];
-    let double: boolean = $state(false);
-    let surrender: boolean = $state(false);
-    let split: boolean = $state(false);
-    let insurance: boolean = $state(false);
+    let canDouble: boolean = $state(false);
+    let canSurrender: boolean = $state(false);
+    let canSplit: boolean = $state(false);
+    let canInsurance: boolean = $state(false);
     let betLimit: number = $state(0);
     let dealerLevel: number = $state(0);
 
@@ -92,7 +97,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeDouble() {
-        gameSession.unlocks.double = double;
+        gameSession.unlocks.double = canDouble;
         refresh();
     }
 
@@ -100,7 +105,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeSplit() {
-        gameSession.unlocks.split = split;
+        gameSession.unlocks.split = canSplit;
         refresh();
     }
 
@@ -108,7 +113,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeInsurance() {
-        gameSession.unlocks.insurance = insurance;
+        gameSession.unlocks.insurance = canInsurance;
         refresh();
     }
 
@@ -116,7 +121,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeSurrender() {
-        gameSession.unlocks.surrender = surrender;
+        gameSession.unlocks.surrender = canSurrender;
         refresh();
     }
 
@@ -157,6 +162,7 @@
         [HandOutcome.PUSH]: "It's a push!",
         [HandOutcome.PLAYER_WIN]: "Player wins!",
         [HandOutcome.DEALER_WIN]: "Dealer wins!",
+        [HandOutcome.SURRENDERED]: "You surrendered.",
         [HandOutcome.NOT_DECIDED]: ""
     };
 </script>
@@ -169,7 +175,7 @@
     {#if gameState.phase == GameSessionPhase.BETTING}
         <div>
             <p>Current bankroll: {gameState.bankroll}</p>
-            <input type="number" bind:value={betInput}>
+            <input type="number" bind:value={betInput} min={gameState.betRange[0]} max={gameState.betRange[1]}>
             <button onclick={deal} disabled={
                 !Number.isInteger(betInput) || 
                 betInput! < gameState.betRange[0] || 
@@ -205,6 +211,7 @@
         <div>
             <button onclick={hit} disabled={gameState.phase != GameSessionPhase.PLAYING}>Hit</button>
             <button onclick={stand} disabled={gameState.phase != GameSessionPhase.PLAYING}>Stand</button>
+            <button onclick={surrender} disabled={gameState.unlocks.surrender == false || gameState.phase != GameSessionPhase.PLAYING}>Surrender</button>
             <button onclick={newRound} disabled={gameState.phase == GameSessionPhase.PLAYING}>New round</button>
         </div>
         {#if gameState.phase == GameSessionPhase.FINISHED}
@@ -221,17 +228,17 @@
         {/if}
         <div>
             Double:
-            <input type="checkbox" bind:checked={double}>
-
+            <input type="checkbox" bind:checked={canDouble}>
+            <br/>
             Split:
-            <input type="checkbox" bind:checked={split}>
-
+            <input type="checkbox" bind:checked={canSplit}>
+            <br/>
             Surrender:
-            <input type="checkbox" bind:checked={surrender}>
-
+            <input type="checkbox" bind:checked={canSurrender}>
+            <br/>
             Insurance:
-            <input type="checkbox" bind:checked={insurance}>
-
+            <input type="checkbox" bind:checked={canInsurance}>
+            <br/>
             Bet limit level:
             <select bind:value={betLimit}>
                 <option value={0}>0</option>
@@ -239,7 +246,7 @@
                 <option value={2}>2</option>
                 <option value={3}>3</option>
             </select>
-
+            <br/>
             Dealer level (4 = 17 hit on soft):
             <select bind:value={dealerLevel}>
                 <option value={0}>0</option>
@@ -248,6 +255,7 @@
                 <option value={3}>3</option>
                 <option value={4}>4</option>
             </select>
+            <br/>
             <button onclick={debug}>Save debug</button>
         </div>
         <div>
