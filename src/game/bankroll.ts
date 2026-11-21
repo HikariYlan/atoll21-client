@@ -43,5 +43,5 @@ export function determinePayout(outcome: HandOutcome, bet: number): number {
 }
 
 export function determineInsurancePayout(insuranceAmount: number, dealerHasBlackjack: boolean): number {
-    return dealerHasBlackjack ? insuranceAmount * 2 : 0;
+    return dealerHasBlackjack ? insuranceAmount * 3 : 0;
 }
