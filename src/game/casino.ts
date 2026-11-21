@@ -98,6 +98,8 @@ export class GameSession {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (!this.unlocks.double) return;
         if (this.currentBankroll < this.round!.playerHands[this.round!.activeHandIndex].bet) return;
+        if (this.round!.playerHands[this.round!.activeHandIndex].cards.length > 2) return;
+        this.currentBankroll -= this.round!.playerHands[this.round!.activeHandIndex].bet;
         this.round!.double();
         this.settle();
     }
