@@ -5,17 +5,16 @@ export function determineBetLimit(startingBankroll: number, betLimitLevel: numbe
     let max: number = 0;
     switch (betLimitLevel) {
         case 0:
-            max = Math.max(1, Math.floor(startingBankroll * 0.5));
+            max = Math.max(1, Math.floor(startingBankroll * 0.3));
             break;
         case 1:
-            max = startingBankroll;
+            max = Math.max(1, Math.floor(startingBankroll * 0.5));
             break;
         case 2:
-
-            max = Math.max(1, Math.floor(startingBankroll * 1.25));
+            max = Math.max(1, Math.floor(startingBankroll * 0.8));
             break;
         case 3:
-            max = Math.max(1, Math.floor(startingBankroll * 1.5));
+            max = Math.max(1, Math.floor(startingBankroll * 1));
             break;
     }
 
