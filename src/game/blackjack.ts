@@ -16,7 +16,7 @@ export enum HandOutcome {
     PUSH = "push",
     PLAYER_WIN = "player_win",
     DEALER_WIN = "dealer_win",
-    SURRENDERED = "surrended",
+    SURRENDERED = "surrendered",
     NOT_DECIDED = "not_decided"
 }
 
