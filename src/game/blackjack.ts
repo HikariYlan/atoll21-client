@@ -133,6 +133,7 @@ export class BlackJackRound {
         }
         this.playerHands[this.activeHandIndex].bet *= 2;
         this.playerHands[this.activeHandIndex].drawCard(this.deck);
+        this.playerHands[this.activeHandIndex].decideHandState();
         this.endActiveHand();
     }
 
