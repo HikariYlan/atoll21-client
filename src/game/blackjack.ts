@@ -174,11 +174,11 @@ export class BlackJackRound {
     playerHands: Hand[];
     dealerHand: Hand;
     roundState: RoundState;
-    dealerHitLimit: number = 0;
-    dealerHitOnSoft: boolean = false;
+    dealerHitLimit: number;
+    dealerHitOnSoft: boolean;
     activeHandIndex: number;
 
-    constructor(bet: number) {
+    constructor(bet: number, dealerHitLimit: number, hitOnSoft: boolean) {
         this.deck = shuffleDeck(createDeck());
         this.playerHands = [new Hand(bet)];
         this.dealerHand = new Hand(0);
@@ -187,6 +187,8 @@ export class BlackJackRound {
         this.dealerHand.drawCard(this.deck);
         this.playerHands[0].drawCard(this.deck);
         this.roundState = RoundState.PLAYER_ROUND;
+        this.dealerHitLimit = dealerHitLimit;
+        this.dealerHitOnSoft = hitOnSoft;
         this.playerHands[0].decideHandState();
         if (this.playerHands[0].state == HandState.BLACKJACK) {
             this.stand();
