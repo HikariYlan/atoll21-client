@@ -77,6 +77,7 @@ export class BlackJackRound {
     dealerHitLimit: number;
     dealerHitOnSoft: boolean;
     activeHandIndex: number;
+    insuranceAmount: number;
 
     constructor(bet: number, dealerHitLimit: number, hitOnSoft: boolean) {
         this.deck = shuffleDeck(createDeck());
@@ -90,6 +91,7 @@ export class BlackJackRound {
         this.dealerHitLimit = dealerHitLimit;
         this.dealerHitOnSoft = hitOnSoft;
         this.playerHands[0].decideHandState();
+        this.insuranceAmount = 0;
         if (this.playerHands[0].state == HandState.BLACKJACK) {
             this.stand();
         }
@@ -137,10 +139,30 @@ export class BlackJackRound {
         this.endActiveHand();
     }
 
+    public insurance(bet: number) {
+        if (this.roundState != RoundState.PLAYER_ROUND) {
+            throw Error("BlackJackRound.insurance(): it is not player's turn");
+        }
+        if (this.playerHands[this.activeHandIndex].cards.length > 2) {
+            throw Error("BlackjackRound.insurance(): hand has more than 2 cards");
+        }
+        if (this.playerHands.length > 1) {
+            throw Error("BlackJackRound.insurance(): there is more than one hand");
+        }
+        if (this.playerHands[this.activeHandIndex].isSurrendered) {
+            throw Error("BlackjackRound.insurance(): hand has been surrendered");
+        }
+        if (this.playerHands[this.activeHandIndex].isDone) {
+            throw Error("BlackjackRound.insurance(): hand is done");
+        }
+
+        this.insuranceAmount = bet;
+    }
+
     private endActiveHand() {
         this.playerHands[this.activeHandIndex].isDone = true;
         if (this.activeHandIndex + 1 >= this.playerHands.length) {
-            if (this.playerHands.every((hand) => hand.state == HandState.BUSTED || hand.isSurrendered)) {
+            if (this.playerHands.every((hand) => hand.state == HandState.BUSTED || hand.isSurrendered && this.insuranceAmount == 0 )) {
                 this.finish();
             } else {
                 dealerTurn(this.deck, this.dealerHand, this.dealerHitLimit, this.dealerHitOnSoft);
