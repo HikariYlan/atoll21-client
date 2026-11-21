@@ -1,6 +1,17 @@
 import { determineBetLimit, determinePayout } from "./bankroll";
 import { BlackJackRound, RoundState } from "./blackjack";
 
+const dealerHitLimits: number[] = [10, 12, 14, 17];
+
+export type Unlocks = {
+    double: boolean;
+    split: boolean;
+    insurance: boolean;
+    surrender: boolean;
+    dealerLevel: number;
+    betLimitLevel: number;
+}
+
 export enum GameSessionPhase {
     BETTING = "betting",
     PLAYING = "playing",
@@ -12,20 +23,27 @@ export class GameSession {
     startingBankroll: number;
     currentBankroll: number;
     currentBet: number = 0;
-    betLimitLevel: number;
+    unlocks: Unlocks;
     gameSessionPhase: GameSessionPhase;
     round: BlackJackRound | null = null;
     lastNet: number = 0;
 
-    constructor (startingBankroll: number, betLimitLevel: number) {
+    constructor (startingBankroll: number) {
         this.startingBankroll = this.currentBankroll = startingBankroll;
-        this.betLimitLevel = betLimitLevel;
+        this.unlocks = {
+            double: false,
+            insurance: false,
+            surrender: false,
+            split: false,
+            dealerLevel: 0,
+            betLimitLevel: 0
+        };
         this.gameSessionPhase = GameSessionPhase.BETTING;
     }
 
     public placingBet(amount: number): void {
         if (this.gameSessionPhase != GameSessionPhase.BETTING) return;
-        let [min, max] = determineBetLimit(this.startingBankroll, this.betLimitLevel);
+        let [min, max] = determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel);
 
         if (amount < min || amount > max || amount > this.currentBankroll || !Number.isInteger(amount)) {
             throw Error("GameSession.placingBet(): amount is invalid");
@@ -33,9 +51,23 @@ export class GameSession {
 
         this.currentBankroll -= amount;
         this.currentBet = amount;
-        this.round = new BlackJackRound(amount);
+
+        let [dealerHitLimit, hitOnSoft] = this.determineDealerHitLimit(this.unlocks.dealerLevel);
+
+        this.round = new BlackJackRound(amount, dealerHitLimit, hitOnSoft);
         this.gameSessionPhase = GameSessionPhase.PLAYING;
         this.settle();
+    }
+
+    private determineDealerHitLimit(dealerLevel: number): [number, boolean] {
+        let hitOnSoft: boolean = false;
+
+        if (dealerLevel == 4) {
+            hitOnSoft = true;
+            return [dealerHitLimits[dealerLevel - 1], hitOnSoft];
+        }
+
+        return [dealerHitLimits[dealerLevel], hitOnSoft];
     }
 
     private settle(): void {
@@ -72,13 +104,13 @@ export class GameSession {
         this.currentBet = this.lastNet = 0;
         this.gameSessionPhase = GameSessionPhase.BETTING;
 
-        if (this.currentBankroll < determineBetLimit(this.startingBankroll, this.betLimitLevel)[0]) {
+        if (this.currentBankroll < determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel)[0]) {
             this.gameSessionPhase = GameSessionPhase.BROKE;
         }
     }
 
     public betRange(): number[] {
-        let [min, max] = determineBetLimit(this.startingBankroll, this.betLimitLevel);
+        let [min, max] = determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel);
         return [min, Math.min(max, this.currentBankroll)];
     }
 }
