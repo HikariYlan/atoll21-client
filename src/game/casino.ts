@@ -1,5 +1,5 @@
-import { determineBetLimit, determinePayout } from "./bankroll";
-import { BlackJackRound, RoundState } from "./blackjack";
+import { determineBetLimit, determineInsurancePayout, determinePayout } from "./bankroll";
+import { BlackJackRound, HandState, RoundState } from "./blackjack";
 
 const dealerHitLimits: number[] = [10, 12, 14, 17];
 
@@ -104,6 +104,19 @@ export class GameSession {
         this.settle();
     }
 
+    public insurance(): void {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
+        if (!this.unlocks.insurance) return;
+        if (this.currentBankroll < this.round!.playerHands[this.round!.activeHandIndex].bet / 2) return;
+        if (this.round!.playerHands[this.round!.activeHandIndex].cards.length > 2) return;
+        if (this.round!.playerHands.length > 1) return;
+        if (this.round!.dealerHand.cards[0].rank != "Ace") return;
+        if (this.round!.insuranceAmount > 0) return;
+        let insuranceAmount = Math.floor(this.round!.playerHands[this.round!.activeHandIndex].bet / 2);
+        this.currentBankroll -= insuranceAmount;
+        this.round!.insurance(insuranceAmount);
+    }
+
     private settle(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (this.round === null || this.round.roundState != RoundState.FINISHED) return;
@@ -113,6 +126,9 @@ export class GameSession {
             payout += determinePayout(hand.outcome, hand.bet);
             stake += hand.bet;
         });
+        let dealerHasBlackjack: boolean = this.round!.dealerHand.state == HandState.BLACKJACK;
+        payout += determineInsurancePayout(this.round!.insuranceAmount, dealerHasBlackjack);
+        stake += this.round!.insuranceAmount;
         this.currentBankroll += payout;
         this.currentBet = stake;
         this.gameSessionPhase = GameSessionPhase.FINISHED;
