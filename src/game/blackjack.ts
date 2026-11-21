@@ -155,6 +155,12 @@ export class BlackJackRound {
         if (this.playerHands[this.activeHandIndex].isDone) {
             throw Error("BlackjackRound.insurance(): hand is done");
         }
+        if (this.dealerHand.cards[0].rank != "Ace") {
+            throw Error("BlackjackRound.insurance(): dealer hand first card is not an Ace");
+        }
+        if (this.insuranceAmount > 0) {
+            throw Error("BlackjackRound.insurance(): insurance has already been taken");
+        }
 
         this.insuranceAmount = bet;
     }
@@ -162,7 +168,7 @@ export class BlackJackRound {
     private endActiveHand() {
         this.playerHands[this.activeHandIndex].isDone = true;
         if (this.activeHandIndex + 1 >= this.playerHands.length) {
-            if (this.playerHands.every((hand) => hand.state == HandState.BUSTED || hand.isSurrendered && this.insuranceAmount == 0 )) {
+            if (this.playerHands.every((hand) => (hand.state == HandState.BUSTED || hand.isSurrendered) && this.insuranceAmount == 0 )) {
                 this.finish();
             } else {
                 dealerTurn(this.deck, this.dealerHand, this.dealerHitLimit, this.dealerHitOnSoft);
