@@ -25,7 +25,8 @@
             phase: gameSession.gameSessionPhase,
             lastNet: gameSession.lastNet,
             betRange: gameSession.betRange(),
-            unlocks: gameSession.unlocks
+            unlocks: gameSession.unlocks,
+            insuranceAmout: round ? round.insuranceAmount : null
         };
     }
 
@@ -52,6 +53,11 @@
 
     function double() {
         gameSession.double();
+        refresh();
+    }
+
+    function insurance() {
+        gameSession.insurance();
         refresh();
     }
 
@@ -191,6 +197,7 @@
     {#if gameState.playerHands && gameState.dealerHand}
         <p>Current bankroll: {gameState.bankroll}</p>
         <p>Current bet: {gameState.bet}</p>
+        <p>Current bet: {gameState.insuranceAmout}</p>
         <div>
             <div class="hand">
                 {#each gameState.dealerHand.cards as card}
@@ -218,6 +225,7 @@
             <button onclick={stand} disabled={gameState.phase != GameSessionPhase.PLAYING}>Stand</button>
             <button onclick={surrender} disabled={gameState.unlocks.surrender == false || gameState.phase != GameSessionPhase.PLAYING}>Surrender</button>
             <button onclick={double} disabled={gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.unlocks.double == false || gameState.phase != GameSessionPhase.PLAYING}>Double</button>
+            <button onclick={insurance} disabled={gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.unlocks.insurance == false || gameState.phase != GameSessionPhase.PLAYING || gameState.insuranceAmout! > 0}>Insurance</button>
             <button onclick={newRound} disabled={gameState.phase == GameSessionPhase.PLAYING}>New round</button>
         </div>
         {#if gameState.phase == GameSessionPhase.FINISHED}
