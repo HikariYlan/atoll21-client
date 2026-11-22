@@ -117,7 +117,8 @@ export class GameSession {
     public canInsurance(): boolean {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return false;
         if (!this.unlocks.insurance) return false;
-        if (this.currentBankroll < this.round!.activeHand().bet / 2) return false;
+        if (this.currentBankroll < Math.floor(this.round!.activeHand().bet / 2)) return false;
+        if (Math.floor(this.round!.activeHand().bet / 2) < 1) return false;
         if (this.round!.activeHand().cards.length > 2) return false;
         if (this.round!.playerHands.length > 1) return false;
         if (this.round!.dealerHand.cards[0].rank != "Ace") return false;
