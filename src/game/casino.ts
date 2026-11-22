@@ -1,5 +1,5 @@
 import { determineBetLimit, determineInsurancePayout, determinePayout } from "./bankroll";
-import { BlackJackRound, HandState, RoundState } from "./blackjack";
+import { BlackJackRound, Card, HandState, RoundState } from "./blackjack";
 
 const dealerHitLimits: number[] = [10, 12, 14, 17];
 
@@ -46,7 +46,7 @@ export class GameSession {
         return [min, Math.min(max, this.currentBankroll)];
     }
 
-    public placingBet(amount: number): void {
+    public placingBet(amount: number, deck?: Card[]): void {
         if (this.gameSessionPhase != GameSessionPhase.BETTING) return;
         let [min, max] = determineBetLimit(this.startingBankroll, this.unlocks.betLimitLevel);
 
@@ -59,7 +59,7 @@ export class GameSession {
 
         let [dealerHitLimit, hitOnSoft] = this.determineDealerHitLimit(this.unlocks.dealerLevel);
 
-        this.round = new BlackJackRound(amount, dealerHitLimit, hitOnSoft);
+        this.round = new BlackJackRound(amount, dealerHitLimit, hitOnSoft, deck);
         this.gameSessionPhase = GameSessionPhase.PLAYING;
         this.settle();
     }

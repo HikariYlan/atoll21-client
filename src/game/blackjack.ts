@@ -79,8 +79,12 @@ export class BlackJackRound {
     activeHandIndex: number;
     insuranceAmount: number;
 
-    constructor(bet: number, dealerHitLimit: number, hitOnSoft: boolean) {
-        this.deck = shuffleDeck(createDeck());
+    constructor(bet: number, dealerHitLimit: number, hitOnSoft: boolean, deck?: Card[]) {
+        if (deck) {
+            this.deck = deck;
+        } else {
+            this.deck = shuffleDeck(createDeck());   
+        }
         this.playerHands = [new Hand(bet)];
         this.dealerHand = new Hand(0);
         this.activeHandIndex = 0;
