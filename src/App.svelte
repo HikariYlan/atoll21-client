@@ -61,6 +61,11 @@
         refresh();
     }
 
+    function split() {
+        gameSession.split();
+        refresh();
+    }
+    
     let betInput: number | null = $state(gameSession.betRange()[0]);
     let lastBet: number = gameSession.betRange()[0];
     let canDouble: boolean = $state(false);
@@ -226,6 +231,7 @@
             <button onclick={surrender} disabled={gameState.unlocks.surrender == false || gameState.phase != GameSessionPhase.PLAYING}>Surrender</button>
             <button onclick={double} disabled={gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.unlocks.double == false || gameState.phase != GameSessionPhase.PLAYING}>Double</button>
             <button onclick={insurance} disabled={gameState.dealerHand.cards[0].rank != "Ace" || gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.unlocks.insurance == false || gameState.phase != GameSessionPhase.PLAYING || gameState.insuranceAmout! > 0}>Insurance</button>
+            <button onclick={split} disabled={gameState.playerHands[gameSession.round!.activeHandIndex].cards[0].rank != gameState.playerHands[gameSession.round!.activeHandIndex].cards[1].rank || gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.playerHands.length >= 4 || gameState.unlocks.split == false || gameState.phase != GameSessionPhase.PLAYING}>Split</button>
             <button onclick={newRound} disabled={gameState.phase == GameSessionPhase.PLAYING}>New round</button>
         </div>
         {#if gameState.phase == GameSessionPhase.FINISHED}
