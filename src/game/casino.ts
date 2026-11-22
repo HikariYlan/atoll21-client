@@ -87,46 +87,65 @@ export class GameSession {
         this.settle();
     }
 
+    public canSurrender(): boolean {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return false;
+        if (!this.unlocks.surrender) return false;
+        return true;
+    }
+
     public surrender(): void {
-        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
-        if (!this.unlocks.surrender) return;
+        if (!this.canSurrender()) return;
         this.round!.surrender();
         this.settle();
     }
 
+    public canDouble(): boolean {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return false;
+        if (!this.unlocks.double) return false;
+        if (this.currentBankroll < this.round!.activeHand().bet) return false;
+        if (this.round!.activeHand().cards.length > 2) return false;
+        return true;
+    }
+
     public double(): void  {
-        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
-        if (!this.unlocks.double) return;
-        if (this.currentBankroll < this.round!.activeHand().bet) return;
-        if (this.round!.activeHand().cards.length > 2) return;
+        if (!this.canDouble()) return;
         this.currentBankroll -= this.round!.activeHand().bet;
         this.round!.double();
         this.settle();
     }
 
+    public canInsurance(): boolean {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return false;
+        if (!this.unlocks.insurance) return false;
+        if (this.currentBankroll < this.round!.activeHand().bet / 2) return false;
+        if (this.round!.activeHand().cards.length > 2) return false;
+        if (this.round!.playerHands.length > 1) return false;
+        if (this.round!.dealerHand.cards[0].rank != "Ace") return false;
+        if (this.round!.insuranceAmount > 0) return false;
+        return true;
+    }
+
     public insurance(): void {
-        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
-        if (!this.unlocks.insurance) return;
-        if (this.currentBankroll < this.round!.activeHand().bet / 2) return;
-        if (this.round!.activeHand().cards.length > 2) return;
-        if (this.round!.playerHands.length > 1) return;
-        if (this.round!.dealerHand.cards[0].rank != "Ace") return;
-        if (this.round!.insuranceAmount > 0) return;
+        if (!this.canInsurance()) return;
         let insuranceAmount = Math.floor(this.round!.activeHand().bet / 2);
         this.currentBankroll -= insuranceAmount;
         this.round!.insurance(insuranceAmount);
     }
 
-    public split(): void {
-        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
-        if (!this.unlocks.split) return;
-        if (this.currentBankroll < this.round!.activeHand().bet) return;
-        if (this.round!.playerHands.length >= 4) return;
-        if (this.round!.activeHand().cards.length > 2) return;
-        if (this.round!.activeHand().cards[0].rank != this.round!.activeHand().cards[1].rank) return;
-        if (this.round!.activeHand().isDone) return;
-        if (this.round!.activeHand().isSurrendered) return;
+    public canSplit(): boolean {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return false;
+        if (!this.unlocks.split) return false;
+        if (this.currentBankroll < this.round!.activeHand().bet) return false;
+        if (this.round!.playerHands.length >= 4) return false;
+        if (this.round!.activeHand().cards.length > 2) return false;
+        if (this.round!.activeHand().cards[0].rank != this.round!.activeHand().cards[1].rank) return false;
+        if (this.round!.activeHand().isDone) return false;
+        if (this.round!.activeHand().isSurrendered) return false;
+        return true;
+    }
 
+    public split(): void {
+        if (this.canSplit()) return;
         this.currentBankroll -= this.round!.activeHand().bet;
         this.round!.split();
         this.settle();
