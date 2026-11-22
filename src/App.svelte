@@ -26,7 +26,13 @@
             lastNet: gameSession.lastNet,
             betRange: gameSession.betRange(),
             unlocks: gameSession.unlocks,
-            insuranceAmout: round ? round.insuranceAmount : null
+            insuranceAmout: round ? round.insuranceAmount : null,
+            can: {
+                double: gameSession.canDouble(), 
+                split: gameSession.canSplit(), 
+                insurance: gameSession.canInsurance(), 
+                surrender: gameSession.canSurrender()
+            }
         };
     }
 
@@ -68,6 +74,7 @@
     
     let betInput: number | null = $state(gameSession.betRange()[0]);
     let lastBet: number = gameSession.betRange()[0];
+    
     let debugDouble: boolean = $state(false);
     let debugSurrender: boolean = $state(false);
     let debugSplit: boolean = $state(false);
@@ -228,10 +235,10 @@
         <div>
             <button onclick={hit} disabled={gameState.phase != GameSessionPhase.PLAYING}>Hit</button>
             <button onclick={stand} disabled={gameState.phase != GameSessionPhase.PLAYING}>Stand</button>
-            <button onclick={surrender} disabled={gameState.unlocks.surrender == false || gameState.phase != GameSessionPhase.PLAYING}>Surrender</button>
-            <button onclick={double} disabled={gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.unlocks.double == false || gameState.phase != GameSessionPhase.PLAYING}>Double</button>
-            <button onclick={insurance} disabled={gameState.dealerHand.cards[0].rank != "Ace" || gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.unlocks.insurance == false || gameState.phase != GameSessionPhase.PLAYING || gameState.insuranceAmout! > 0}>Insurance</button>
-            <button onclick={split} disabled={gameState.playerHands[gameSession.round!.activeHandIndex].cards[0].rank != gameState.playerHands[gameSession.round!.activeHandIndex].cards[1].rank || gameState.playerHands[gameSession.round!.activeHandIndex].cards.length > 2 || gameState.playerHands.length >= 4 || gameState.unlocks.split == false || gameState.phase != GameSessionPhase.PLAYING}>Split</button>
+            <button onclick={surrender} disabled={!gameState.can.surrender}>Surrender</button>
+            <button onclick={double} disabled={!gameState.can.double}>Double</button>
+            <button onclick={insurance} disabled={!gameState.can.insurance}>Insurance</button>
+            <button onclick={split} disabled={!gameState.can.split}>Split</button>
             <button onclick={newRound} disabled={gameState.phase == GameSessionPhase.PLAYING}>New round</button>
         </div>
         {#if gameState.phase == GameSessionPhase.FINISHED}
