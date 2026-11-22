@@ -98,7 +98,7 @@ export class BlackJackRound {
     }
 
     public activeHand(): Hand {
-        return this.activeHand();
+        return this.playerHands[this.activeHandIndex];
     }
 
     public hit() {
