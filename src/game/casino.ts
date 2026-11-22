@@ -117,6 +117,21 @@ export class GameSession {
         this.round!.insurance(insuranceAmount);
     }
 
+    public split(): void {
+        if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
+        if (!this.unlocks.split) return;
+        if (this.currentBankroll < this.round!.playerHands[this.round!.activeHandIndex].bet) return;
+        if (this.round!.playerHands.length >= 4) return;
+        if (this.round!.playerHands[this.round!.activeHandIndex].cards.length > 2) return;
+        if (this.round!.playerHands[this.round!.activeHandIndex].cards[0].rank != this.round!.playerHands[this.round!.activeHandIndex].cards[1].rank) return;
+        if (this.round!.playerHands[this.round!.activeHandIndex].isDone) return;
+        if (this.round!.playerHands[this.round!.activeHandIndex].isSurrendered) return;
+
+        this.currentBankroll -= this.round!.playerHands[this.round!.activeHandIndex].bet;
+        this.round!.split();
+        this.settle();
+    }
+
     private settle(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (this.round === null || this.round.roundState != RoundState.FINISHED) return;
