@@ -97,14 +97,18 @@ export class BlackJackRound {
         }
     }
 
+    public activeHand(): Hand {
+        return this.activeHand();
+    }
+
     public hit() {
         if (this.roundState != RoundState.PLAYER_ROUND) {
             throw Error("BlackJackRound.hit(): it is not player's turn");
         }
-        this.playerHands[this.activeHandIndex].drawCard(this.deck);
-        this.playerHands[this.activeHandIndex].decideHandState();
-        let [total, _] = computeHand(this.playerHands[this.activeHandIndex].cards);
-        if (this.playerHands[this.activeHandIndex].state == HandState.BUSTED) {
+        this.activeHand().drawCard(this.deck);
+        this.activeHand().decideHandState();
+        let [total, _] = computeHand(this.activeHand().cards);
+        if (this.activeHand().state == HandState.BUSTED) {
             this.endActiveHand();
         } else if (total == 21) {
             this.stand();
@@ -122,7 +126,7 @@ export class BlackJackRound {
         if (this.roundState != RoundState.PLAYER_ROUND) {
             throw Error("BlackJackRound.surrender(): it is not player's turn");
         }
-        this.playerHands[this.activeHandIndex].isSurrendered = true;
+        this.activeHand().isSurrendered = true;
         this.endActiveHand(); 
     }
 
@@ -130,12 +134,12 @@ export class BlackJackRound {
         if (this.roundState != RoundState.PLAYER_ROUND) {
             throw Error("BlackJackRound.double(): it is not player's turn");
         }
-        if (this.playerHands[this.activeHandIndex].cards.length > 2) {
+        if (this.activeHand().cards.length > 2) {
             throw Error("BlackjackRound.double(): hand has more than 2 cards");
         }
-        this.playerHands[this.activeHandIndex].bet *= 2;
-        this.playerHands[this.activeHandIndex].drawCard(this.deck);
-        this.playerHands[this.activeHandIndex].decideHandState();
+        this.activeHand().bet *= 2;
+        this.activeHand().drawCard(this.deck);
+        this.activeHand().decideHandState();
         this.endActiveHand();
     }
 
@@ -143,16 +147,16 @@ export class BlackJackRound {
         if (this.roundState != RoundState.PLAYER_ROUND) {
             throw Error("BlackJackRound.insurance(): it is not player's turn");
         }
-        if (this.playerHands[this.activeHandIndex].cards.length > 2) {
+        if (this.activeHand().cards.length > 2) {
             throw Error("BlackjackRound.insurance(): hand has more than 2 cards");
         }
         if (this.playerHands.length > 1) {
             throw Error("BlackJackRound.insurance(): there is more than one hand");
         }
-        if (this.playerHands[this.activeHandIndex].isSurrendered) {
+        if (this.activeHand().isSurrendered) {
             throw Error("BlackjackRound.insurance(): hand has been surrendered");
         }
-        if (this.playerHands[this.activeHandIndex].isDone) {
+        if (this.activeHand().isDone) {
             throw Error("BlackjackRound.insurance(): hand is done");
         }
         if (this.dealerHand.cards[0].rank != "Ace") {
@@ -169,47 +173,51 @@ export class BlackJackRound {
         if (this.roundState != RoundState.PLAYER_ROUND) {
             throw Error("BlackjackRound.split(): it is not player's turn");
         }
-        if (this.playerHands[this.activeHandIndex].cards.length > 2) {
+        if (this.activeHand().cards.length > 2) {
             throw Error("BlackjackRound.split(): your hand has more than 2 cards");
         }
-        if (this.playerHands[this.activeHandIndex].cards[0].rank != this.playerHands[this.activeHandIndex].cards[1].rank) {
+        if (this.activeHand().cards[0].rank != this.activeHand().cards[1].rank) {
             throw Error("BlackjackRound.split(): your cards do not have the same rank");
         }
         if (this.playerHands.length >= 4) {
             throw Error("BlackjackRound.split(): there is already 4 hands");
         }
-        if (this.playerHands[this.activeHandIndex].isDone ) {
+        if (this.activeHand().isDone ) {
             throw Error("BlackjackRound.split(): your hand is done");
         }
-        if (this.playerHands[this.activeHandIndex].isSurrendered) {
+        if (this.activeHand().isSurrendered) {
             throw Error("BlackJackRound.split(): your hand is surrendered");
         }
 
-        let newHand: Hand = new Hand(this.playerHands[this.activeHandIndex].bet);
+        let newHand: Hand = new Hand(this.activeHand().bet);
 
-        if (this.playerHands[this.activeHandIndex].cards.length > 0) {
-            let secondCard: Card = this.playerHands[this.activeHandIndex].cards.pop() as Card;
+        if (this.activeHand().cards.length > 0) {
+            let secondCard: Card = this.activeHand().cards.pop() as Card;
             newHand.cards.push(secondCard);
 
             this.playerHands.splice(this.activeHandIndex+1, 0, newHand);
 
-            this.playerHands[this.activeHandIndex].drawCard(this.deck);
-            this.playerHands[this.activeHandIndex].decideHandState();
+            this.activeHand().drawCard(this.deck);
+            this.activeHand().decideHandState();
             this.playerHands[this.activeHandIndex+1].drawCard(this.deck);
             this.playerHands[this.activeHandIndex+1].decideHandState();
 
-            if (this.playerHands[this.activeHandIndex].state == HandState.BLACKJACK || computeHand(this.playerHands[this.activeHandIndex].cards)[0] == 21) {
+            if (this.activeHand().state == HandState.BLACKJACK || computeHand(this.activeHand().cards)[0] == 21) {
                 this.stand();
             }
 
         }
     }
 
+    private is21() {
+        return this.activeHand().state == HandState.BLACKJACK || computeHand(this.activeHand().cards)[0] == 21;
+    }
+
     private endActiveHand() {
-        this.playerHands[this.activeHandIndex].isDone = true;
+        this.activeHand().isDone = true;
         this.activeHandIndex += 1;
-        while (this.activeHandIndex < this.playerHands.length && (this.playerHands[this.activeHandIndex].state == HandState.BLACKJACK || computeHand(this.playerHands[this.activeHandIndex].cards)[0] == 21)) {
-            this.playerHands[this.activeHandIndex].isDone = true;
+        while (this.activeHandIndex < this.playerHands.length && this.is21()) {
+            this.activeHand().isDone = true;
             this.activeHandIndex += 1;
         }
         if (this.activeHandIndex >= this.playerHands.length) {

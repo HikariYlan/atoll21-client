@@ -97,9 +97,9 @@ export class GameSession {
     public double(): void  {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (!this.unlocks.double) return;
-        if (this.currentBankroll < this.round!.playerHands[this.round!.activeHandIndex].bet) return;
-        if (this.round!.playerHands[this.round!.activeHandIndex].cards.length > 2) return;
-        this.currentBankroll -= this.round!.playerHands[this.round!.activeHandIndex].bet;
+        if (this.currentBankroll < this.round!.activeHand().bet) return;
+        if (this.round!.activeHand().cards.length > 2) return;
+        this.currentBankroll -= this.round!.activeHand().bet;
         this.round!.double();
         this.settle();
     }
@@ -107,12 +107,12 @@ export class GameSession {
     public insurance(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (!this.unlocks.insurance) return;
-        if (this.currentBankroll < this.round!.playerHands[this.round!.activeHandIndex].bet / 2) return;
-        if (this.round!.playerHands[this.round!.activeHandIndex].cards.length > 2) return;
+        if (this.currentBankroll < this.round!.activeHand().bet / 2) return;
+        if (this.round!.activeHand().cards.length > 2) return;
         if (this.round!.playerHands.length > 1) return;
         if (this.round!.dealerHand.cards[0].rank != "Ace") return;
         if (this.round!.insuranceAmount > 0) return;
-        let insuranceAmount = Math.floor(this.round!.playerHands[this.round!.activeHandIndex].bet / 2);
+        let insuranceAmount = Math.floor(this.round!.activeHand().bet / 2);
         this.currentBankroll -= insuranceAmount;
         this.round!.insurance(insuranceAmount);
     }
@@ -120,14 +120,14 @@ export class GameSession {
     public split(): void {
         if (this.gameSessionPhase != GameSessionPhase.PLAYING) return;
         if (!this.unlocks.split) return;
-        if (this.currentBankroll < this.round!.playerHands[this.round!.activeHandIndex].bet) return;
+        if (this.currentBankroll < this.round!.activeHand().bet) return;
         if (this.round!.playerHands.length >= 4) return;
-        if (this.round!.playerHands[this.round!.activeHandIndex].cards.length > 2) return;
-        if (this.round!.playerHands[this.round!.activeHandIndex].cards[0].rank != this.round!.playerHands[this.round!.activeHandIndex].cards[1].rank) return;
-        if (this.round!.playerHands[this.round!.activeHandIndex].isDone) return;
-        if (this.round!.playerHands[this.round!.activeHandIndex].isSurrendered) return;
+        if (this.round!.activeHand().cards.length > 2) return;
+        if (this.round!.activeHand().cards[0].rank != this.round!.activeHand().cards[1].rank) return;
+        if (this.round!.activeHand().isDone) return;
+        if (this.round!.activeHand().isSurrendered) return;
 
-        this.currentBankroll -= this.round!.playerHands[this.round!.activeHandIndex].bet;
+        this.currentBankroll -= this.round!.activeHand().bet;
         this.round!.split();
         this.settle();
     }
