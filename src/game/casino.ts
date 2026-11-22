@@ -145,7 +145,7 @@ export class GameSession {
     }
 
     public split(): void {
-        if (this.canSplit()) return;
+        if (!this.canSplit()) return;
         this.currentBankroll -= this.round!.activeHand().bet;
         this.round!.split();
         this.settle();
