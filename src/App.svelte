@@ -68,10 +68,10 @@
     
     let betInput: number | null = $state(gameSession.betRange()[0]);
     let lastBet: number = gameSession.betRange()[0];
-    let canDouble: boolean = $state(false);
-    let canSurrender: boolean = $state(false);
-    let canSplit: boolean = $state(false);
-    let canInsurance: boolean = $state(false);
+    let debugDouble: boolean = $state(false);
+    let debugSurrender: boolean = $state(false);
+    let debugSplit: boolean = $state(false);
+    let debugInsurance: boolean = $state(false);
     let betLimit: number = $state(0);
     let dealerLevel: number = $state(0);
 
@@ -113,7 +113,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeDouble() {
-        gameSession.unlocks.double = canDouble;
+        gameSession.unlocks.double = debugDouble;
         refresh();
     }
 
@@ -121,7 +121,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeSplit() {
-        gameSession.unlocks.split = canSplit;
+        gameSession.unlocks.split = debugSplit;
         refresh();
     }
 
@@ -129,7 +129,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeInsurance() {
-        gameSession.unlocks.insurance = canInsurance;
+        gameSession.unlocks.insurance = debugInsurance;
         refresh();
     }
 
@@ -137,7 +137,7 @@
      * FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD
      */
     function changeSurrender() {
-        gameSession.unlocks.surrender = canSurrender;
+        gameSession.unlocks.surrender = debugSurrender;
         refresh();
     }
 
@@ -246,18 +246,19 @@
                     {/if}</h1>
             </div>
         {/if}
+        <!-- FOR DEBUG PURPOSES ONLY, DELETE THIS WHEN GOING PROD -->
         <div>
             Double:
-            <input type="checkbox" bind:checked={canDouble}>
+            <input type="checkbox" bind:checked={debugDouble}>
             <br/>
             Split:
-            <input type="checkbox" bind:checked={canSplit}>
+            <input type="checkbox" bind:checked={debugSplit}>
             <br/>
             Surrender:
-            <input type="checkbox" bind:checked={canSurrender}>
+            <input type="checkbox" bind:checked={debugSurrender}>
             <br/>
             Insurance:
-            <input type="checkbox" bind:checked={canInsurance}>
+            <input type="checkbox" bind:checked={debugInsurance}>
             <br/>
             Bet limit level:
             <select bind:value={betLimit}>
